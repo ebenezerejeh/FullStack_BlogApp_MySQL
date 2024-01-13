@@ -17,7 +17,7 @@ export const getPosts = (req, res)=>{
 
 
 export const getPost = (req, res)=>{
-const q = "SELECT username, title, postdesc, p.img, u.img AS userImage, cat, date FROM users u JOIN posts p On u.id=p.uid WHERE p.id = ? "        
+const q = "SELECT p.id, username, title, postdesc, p.img, u.img AS userImage, cat, date FROM users u JOIN posts p On u.id=p.uid WHERE p.id = ? "        
 
 db.query(q, [req.params.id],(err,data)=>{
     if(err) return res.status(500).json(err)
@@ -30,7 +30,43 @@ db.query(q, [req.params.id],(err,data)=>{
 
 
 export const addPost = (req, res)=>{
-    res.json('this is a post')
+    const token = req.cookies.access_token
+    console.log(token)
+    if(!token) return res.status(401).json("Not Authenticated")
+
+    Jwt.verify(token,"jwtkey",(err,userInfo)=>{
+        if(err) return res.status(403).json('its not valid')
+
+        // console.log(req.body)
+
+        const q = "INSERT INTO posts(title, postdesc, img, cat, date, uid) VALUES (?)"
+
+        const values = [
+            req.body.title,
+            req.body.postdesc,
+            req.body.img,
+            req.body.cat,
+            req.body.date,
+            userInfo.id
+
+        ];
+        console.log(values)
+
+        db.query(q,[values], (err, data)=>{
+            if (err){
+                console.log(err)
+                return res.status(500).json(err)
+            }else{
+            console.log(data)
+            return res.json("post has been created")
+            }
+        })
+
+
+    
+    });
+
+
 }
 export const deletePost = (req, res)=>{
     //skipped the jwt authentication
@@ -59,5 +95,33 @@ export const deletePost = (req, res)=>{
 
 }
 export const updatePost = (req, res)=>{
-    res.json('this is a post')
+    const token = req.cookies.access_token
+    console.log(token)
+    if(!token) return res.status(401).json("Not Authenticated")
+
+    Jwt.verify(token,"jwtkey",(err,userInfo)=>{
+        if(err) return res.status(403).json('its not valid')
+        
+        const postId = req.params.id
+        const q = "UPDATE posts SET title=?, postdesc=?, img=?, cat=? WHERE id = ? AND uid = ? "
+
+        const values = [
+            req.body.title,
+            req.body.postdesc,
+            req.body.img,
+            req.body.cat,
+
+        ]
+
+        db.query(q,[...values, postId,userInfo.id], (err, date)=>{
+            if (err) return res.status(500).json(err)
+            return res.json("post has been updated")
+        });
+
+
+    
+    });
+
+
+    
 }

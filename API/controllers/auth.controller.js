@@ -46,11 +46,11 @@ export const login = (req, res)=>{
         
         if(!isPasswordCorrect) return res.status(400).json('wrong username or password!')
 
-        const token = jwt.sign({ id:data[0].id}, "jwtkey" );
-        console.log(data[0].id)
+        const token = jwt.sign({ id:data[0].id}, "jwtkey");
+        // console.log(data[0].id)
         //we create an object that does not contain the password so as to send it to the client side.
         const { password, ...other} = data[0]
-        console.log(other)
+        // console.log(other)
         res.cookie("access_token", token, {httpOnly:true}).status(200).json(other)
         
     })
